@@ -32,16 +32,13 @@ const InputForm = () => {
         }
       );
       const results = await response.json();
-      if (results.status === "success") {
-        const new_api = await fetch(
-          `http://127.0.0.1:8080/api/v1/public/show-video/static/videos/${results.path}`,
-          {
-            method: "GET",
-          }
-        );
-        setVideo(new_api.url);
-      }
-    } catch (err) {}
+    if (results.status === "success") {
+      const streamUrl = `http://127.0.0.1:8080/api/v1/public/show-video/static/videos/${results.path}`;
+      setVideo(streamUrl);
+    }
+  } catch (err) {
+    // console.error("Error:", err);
+  }
   };
 
   useEffect(() => {}, [video]);
@@ -51,12 +48,13 @@ const InputForm = () => {
         {video ? (
           <div className="w-full min-h-[200px] md:min-h-[400px] border-4 rounded-md border-dashed p-1">
             {video && (
-              <img
-                src={video}
-                alt=""
-                className="w-full h-full object-cover rounded-md"
-              />
-            )}
+  <img
+    src={video}
+    alt="Detected Stream"
+    className="w-full h-full object-cover rounded-md"
+  />
+)}
+
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)}>

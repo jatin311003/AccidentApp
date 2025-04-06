@@ -1,7 +1,7 @@
 "use client";
 
-import React, { FormEvent } from "react";
-import { useForm, SubmitHandler, FieldValues } from "react-hook-form";
+import React from "react";
+import { useForm } from "react-hook-form";
 import { Button } from "../ui/button";
 import axios from "@/lib/axios";
 import { LoginSchema } from "@/schemas/login-schema";
@@ -11,61 +11,65 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { setCookie } from "cookies-next";
 
-type Props = {};
-
 type FormData = z.infer<typeof LoginSchema>;
 
-export default function LoginForm({}: Props) {
+export default function LoginForm() {
   const router = useRouter();
+
   const {
     register,
-    watch,
+    handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-    handleSubmit,
   } = useForm<FormData>({
     defaultValues: {
-      email: "gurungebraj22@gmail.com",
-      password: "Test@1234",
+      email: "jatin2@gmail.com",
+      password: "12345678",
     },
     resolver: zodResolver(LoginSchema),
   });
 
-  const handleLoginSubmit = async (data: FieldValues) => {
-    toast("Logging in...", {
+  const handleLoginSubmit = async (data: FormData) => {
+    toast.loading("Logging in...", {
       id: "login",
     });
+
     try {
       const response = await axios.post(
         "http://127.0.0.1:8080/api/v1/auth/login",
         {
-          username: data.email,
+          email: data.email,
           password: data.password,
+        },
+        {
           withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 
       setCookie("token", response.data.access_token, {
-        maxAge: 60 * 60 * 24,
+        maxAge: 60 * 60 * 24, // 1 day
       });
+
       toast.success("Logged in successfully!", {
         id: "login",
       });
+
       router.push("/dashboard");
     } catch (error: any) {
-      if (error && error.response) {
-        toast.error(error.response.data.msg, {
-          id: "login",
-        });
+      if (error.response?.data?.msg) {
+        toast.error(error.response.data.msg, { id: "login" });
       } else {
-        toast.error("An error occurred. Please try again later.", {
-          id: "login",
-        });
+        // console.error("Login error:", error);
+        toast.error("An unexpected error occurred.", { id: "login" });
       }
     } finally {
       reset();
     }
   };
+
   return (
     <div className="sm:max-w-[460px] shadow-sm mx-auto bg-white p-5 border rounded-md">
       <h2 className="text-2xl font-bold pb-5 text-center underline">Login</h2>
@@ -75,15 +79,16 @@ export default function LoginForm({}: Props) {
             Email <span className="text-red-500">*</span>
           </label>
           <input
-            type="text"
+            type="email"
             className="w-full px-4 py-3 rounded-md border outline-none"
             autoComplete="off"
             {...register("email")}
           />
-          <span className="inline-block text-sm text-red-500">
-            {errors.email && errors.email.message}
+          <span className="text-sm text-red-500">
+            {errors.email?.message}
           </span>
         </div>
+
         <div className="space-y-2">
           <label htmlFor="password">
             Password <span className="text-red-500">*</span>
@@ -94,12 +99,18 @@ export default function LoginForm({}: Props) {
             autoComplete="off"
             {...register("password")}
           />
-          <span className="inline-block text-sm text-red-500">
-            {errors.password && errors.password.message}
+          <span className="text-sm text-red-500">
+            {errors.password?.message}
           </span>
         </div>
-        <Button className="w-full" size={"lg"}>
-          Login
+
+        <Button
+          type="submit"
+          className="w-full"
+          size="lg"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Logging in..." : "Login"}
         </Button>
       </form>
     </div>

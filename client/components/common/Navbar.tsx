@@ -10,6 +10,7 @@ type Props = {};
 export default async function Navbar({}: Props) {
   const cookieStore = cookies();
   const token = cookieStore.get("token")?.value;
+
   return (
     <main className="bg-gray-900 py-4 border-b-2 border-gray-800">
       <MaxWidthContainer>
@@ -20,9 +21,14 @@ export default async function Navbar({}: Props) {
 
           <div className="flex items-center justify-center space-x-2">
             {!token ? (
-              <Button size={"lg"} asChild>
-                <Link href={"/auth/login"}>Login</Link>
-              </Button>
+              <>
+                <Button size={"lg"} asChild>
+                  <Link href={"/auth/login"}>Login</Link>
+                </Button>
+                <Button size={"lg"} variant={"outline"} asChild>
+                  <Link href={"/auth/register"}>Register</Link>
+                </Button>
+              </>
             ) : (
               <UserNav />
             )}

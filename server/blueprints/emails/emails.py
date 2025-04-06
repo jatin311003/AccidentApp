@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, jsonify, request
+from flask import  Blueprint, current_app, jsonify, request
 from flask_mail import Mail, Message
 import os
 from dotenv import load_dotenv

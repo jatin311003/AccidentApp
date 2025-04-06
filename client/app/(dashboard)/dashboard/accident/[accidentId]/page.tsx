@@ -14,193 +14,181 @@ import { useForm } from "react-hook-form";
 import { rescueTeamLists, RescueTeam } from "@/datas/rescueTeams";
 import toast from "react-hot-toast";
 
-type Props = {};
-
 export default function SingleAccidentPage({ params }: any) {
   const [checkedItems, setCheckedItems] = useState(rescueTeamLists);
   const [allChecked, setAllChecked] = useState(false);
 
-  const {
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+  const { handleSubmit } = useForm();
   const {
     data: singleAccident,
     isLoading,
-    error,
   } = useQuery({
     queryKey: ["accident", params.accidentId],
     queryFn: async () => {
-      const response = await fetch(
+      const res = await fetch(
         `http://127.0.0.1:8080/api/v1/accident/${params.accidentId}`
       );
-      return await response.json();
+      
+      return await res.json();
     },
   });
+  console.log(singleAccident)
 
   const handleCheckAll = () => {
     setAllChecked(!allChecked);
-    const newRescueTeamList = rescueTeamLists.map((rescueTeam) => {
-      rescueTeam.isChecked = !allChecked;
-      return rescueTeam;
-    });
-    setCheckedItems(newRescueTeamList);
+    const newList = rescueTeamLists.map((team) => ({
+      ...team,
+      isChecked: !allChecked,
+    }));
+    setCheckedItems(newList);
   };
 
   const handleCheckboxChangeFinal = (id: string) => {
-    const newRescueTeamList = rescueTeamLists.map((rescueTeam) => {
-      if (rescueTeam.id === id) {
-        rescueTeam.isChecked = !rescueTeam.isChecked;
-      }
-      return rescueTeam;
-    });
-    setCheckedItems(newRescueTeamList);
+    const updatedList = checkedItems.map((team) =>
+      team.id === id ? { ...team, isChecked: !team.isChecked } : team
+    );
+    setCheckedItems(updatedList);
   };
 
   useEffect(() => {
-    const isEveryChecked = checkedItems.every(
-      (rescueTeam) => rescueTeam.isChecked
-    );
-    setAllChecked(isEveryChecked);
+    const allSelected = checkedItems.every((team) => team.isChecked);
+    setAllChecked(allSelected);
   }, [checkedItems]);
 
   const onSubmit = async () => {
-    const { latitude, longitude, address } = singleAccident?.data;
-    const response = await sendQuickMail({
-      checkedItems,
-      latitude,
-      longitude,
-      address,
-    });
-
-    if (response) {
-      toast.success("Mail Sent Successfully");
-    } else {
-      toast.error("Mail Sent Failed");
+    if (!singleAccident?.data) {
+      toast.error("No accident data available");
+      return;
+    }
+    
+    const { latitude, longitude, address } = singleAccident.data;
+    
+    try {
+      const response = await sendQuickMail({
+        checkedItems,
+        latitude,
+        longitude,
+        address,
+      });
+      
+      if (response) {
+        toast.success("Mail Sent Successfully");
+      } else {
+        toast.error("Mail Failed");
+      }
+    } catch (error) {
+      console.error("Error sending mail:", error);
+      toast.error("Error sending mail");
     }
   };
 
   return (
-    <section>
-      <div className="ml-auto pb-8">
-        <div>
-          <fieldset className="border-4 border-dashed rounded-md">
-            <legend className="pb-4 text-xl sm:text-2xl font-bold underline">
-              Rescue Team
-            </legend>
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="sm:items-center space-y-5 sm:space-y-0 flex sm:space-between p-5 flex-col sm:flex-row"
-            >
-              <div className="sm:space-x-5 space-y-2 sm:space-y-0 items-start flex flex-col sm:flex-row">
-                <label className="inline-block space-x-2 flex items-center justify-center">
-                  <input
-                    className="w-5 h-5 inline-block"
-                    type="checkbox"
-                    checked={allChecked}
-                    onChange={handleCheckAll}
-                  />
-                  <span>All</span>
-                </label>
-                {rescueTeamLists.map((rescueTeam, index) => {
-                  return (
-                    <label
-                      key={index}
-                      className="inline-block space-x-2 flex items-center justify-center"
-                    >
-                      <input
-                        className="w-5 h-5 inline-block"
-                        type="checkbox"
-                        id={rescueTeam.id}
-                        checked={rescueTeam.isChecked}
-                        onChange={(e) => {
-                          handleCheckboxChangeFinal(rescueTeam.id);
-                        }}
-                      />
-                      <span>{rescueTeam.name}</span>
-                    </label>
-                  );
-                })}
-              </div>
+    <section className="space-y-10 px-4 sm:px-8 py-10">
+      {/* Rescue Team */}
+      <fieldset className="border-2 border-dashed border-gray-300 p-6 rounded-md shadow-sm bg-white">
+        <legend className="text-xl sm:text-2xl font-semibold text-gray-800 underline mb-4">
+          Rescue Team
+        </legend>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col sm:flex-row sm:items-center gap-4"
+        >
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                className="w-5 h-5"
+                checked={allChecked}
+                onChange={handleCheckAll}
+              />
+              <span>All</span>
+            </label>
+            {checkedItems.map((team, idx) => (
+              <label key={idx} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="w-5 h-5"
+                  checked={team.isChecked}
+                  onChange={() => handleCheckboxChangeFinal(team.id)}
+                />
+                <span>{team.name}</span>
+              </label>
+            ))}
+          </div>
+          <Button
+            type="submit"
+            className="sm:ml-auto"
+            disabled={isLoading || !singleAccident?.data}
+          >
+            Quick Mail
+          </Button>
+        </form>
+      </fieldset>
 
-              <Button
-                className="sm:ml-auto"
-                disabled={isLoading || !singleAccident?.data}
-              >
-                Quick Mail
-              </Button>
-            </form>
-          </fieldset>
-        </div>
-      </div>
-      <div>
-        {isLoading ? (
-          <>Loading...</>
-        ) : (
-          <>
-            <h2 className="text-xl sm:text-2xl pb-5 font-bold underline">
+      {/* Accident Details */}
+      {isLoading ? (
+        <div className="text-gray-600 animate-pulse">Loading accident data...</div>
+      ) : (
+        <>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 underline mb-4">
               Accident Details
             </h2>
-            <div>
-              {/* Other details section */}
-              <GridContainer className="items-stretch">
-                <div className="bg-white shadow-sm p-5 break-all">
-                  <h3 className="font-bold text-xl pb-1 underline">Address</h3>
-                  <p>{singleAccident?.data?.address}</p>
-                </div>
-                <div className="bg-white shadow-sm p-5 break-all">
-                  <h3 className="font-bold text-xl pb-1 underline">
-                    Longitude
+            <GridContainer className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {[
+                { label: "Address", value: singleAccident?.data?.address },
+                { label: "Latitude", value: singleAccident?.data?.latitude },
+                { label: "Longitude", value: singleAccident?.data?.longitude },
+                { label: "Severity", value: singleAccident?.data?.severity },
+                {
+                  label: "Severity Percentage",
+                  value: `${singleAccident?.data?.severityInPercentage} %`,
+                },
+                { label: "Date", value: singleAccident?.data?.date },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white border border-gray-200 p-5 rounded-md shadow-sm"
+                >
+                  <h3 className="text-lg font-semibold text-gray-700 underline mb-1">
+                    {item.label}
                   </h3>
-                  {singleAccident?.data?.longitude}
+                  <p className="text-gray-600 text-sm break-words">
+                    {item.value}
+                  </p>
                 </div>
-                <div className="bg-white shadow-sm p-5 break-all">
-                  <h3 className="font-bold text-xl pb-1 underline">Latitude</h3>
-                  {singleAccident?.data?.latitude}
-                </div>
-                <div className="bg-white shadow-sm p-5 break-all">
-                  <h3 className="font-bold text-xl pb-1 underline">Severity</h3>
-                  {singleAccident?.data?.severity}
-                </div>
-                <div className="bg-white shadow-sm p-5 break-all">
-                  <h3 className="font-bold text-xl pb-1 underline">
-                    Severity In Percentage
-                  </h3>
-                  {singleAccident?.data?.severityInPercentage} %
-                </div>
-                <div className="bg-white shadow-sm p-5 break-all">
-                  <h3 className="font-bold text-xl pb-1 underline">Date</h3>
-                  {singleAccident?.data?.date}
-                  {/* {format(
-                new Date(singleAccident?.data?.date).toLocaleString(),
-                "MMMM d, yyyy h:mm:ss a"
-              )} */}
-                </div>
-              </GridContainer>
-            </div>
-            {/* Map Section */}
-            <div className="pt-8 space-y-8">
-              <CustomMap />
-            </div>
-            <div className="pt-8 space-y-8">
-              <h2 className="text-xl sm:text-2xl font-bold underline">
-                Accident Images
-              </h2>
-              <div>
-                {singleAccident?.data?.image_url && (
-                  <Image
-                    src={singleAccident?.data?.image_url}
-                    width={1000}
-                    height={600}
-                    alt={""}
-                    className="w-full h-full object-cover rounded-md"
-                  />
-                )}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+              ))}
+            </GridContainer>
+          </div>
+
+          {/* Map Section */}
+          <div className="space-y-4">
+            <h2 className="text-xl sm:text-2xl font-bold underline">Accident Location</h2>
+            {singleAccident?.data?.latitude && singleAccident?.data?.longitude && (
+  <CustomMap
+    latitude={parseFloat(singleAccident.data.latitude)}
+    longitude={parseFloat(singleAccident.data.longitude)}
+    address={singleAccident.data.address}
+  />
+)}
+
+          </div>
+
+          {/* Image Section */}
+          {/* <div className="space-y-4">
+            <h2 className="text-xl sm:text-2xl font-bold underline">Accident Image</h2>
+            {singleAccident?.data?.image_url && (
+              <Image
+                src={singleAccident?.data?.image_url}
+                width={1000}
+                height={600}
+                alt="Accident"
+                className="rounded-lg shadow-md object-cover"
+              />
+            )}
+          </div> */}
+        </>
+      )}
     </section>
   );
 }

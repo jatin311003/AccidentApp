@@ -18,11 +18,12 @@ export default function Page({}: Props) {
   });
   return (
     <>
+    
       {/* <SimpleChart /> */}
       <h2 className="text-xl sm:text-2xl pb-5 font-bold underline">
-        Accidents Overview(Per month)
+        Accidents Overview (Per month)
       </h2>
       {accidents?.datas && <CustomChart datas={accidents?.datas} />}
     </>
   );
-}
+} 

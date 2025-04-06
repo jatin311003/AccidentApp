@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
   const cookieStore = cookies();
   const token = cookieStore.get("token")?.value;
   const path = request.nextUrl.pathname;
-  console.log("cookie", token);
+  // console.log("cookie", token);
 
   if (path.startsWith("/auth") && token) {
     return NextResponse.redirect(new URL("/dashboard", request.url));

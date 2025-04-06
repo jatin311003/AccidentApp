@@ -14,16 +14,6 @@ const transport = createTransport({
   },
 });
 
-export interface ContactFromState {
-  message: string;
-  link: string;
-  fieldValues: {
-    sender_name: string;
-    sender_email: string;
-    sender_message: string;
-  };
-}
-
 export async function sendQuickMail({
   checkedItems,
   latitude,
@@ -35,19 +25,33 @@ export async function sendQuickMail({
   longitude: string;
   address: string;
 }) {
-  const googleMapLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-  const msgToSend = `Accident at ${address}. <br> Map Link - ${googleMapLink}`;
-  const mailList = checkedItems
-    .filter((item: RescueTeam) => item.isChecked)
-    .map((item: RescueTeam) => ({
-      name: item.name,
-      address: item.email,
-    }));
-  const mailResponse = await transport.sendMail({
-    from: process.env.EMAIL,
-    to: mailList as any,
-    subject: "🚨 Accident Alert",
-    text: msgToSend,
-  });
-  return mailResponse;
+  try {
+    const googleMapLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    const htmlContent = `
+      <h2>🚨 Accident Alert</h2>
+      <p><strong>Location:</strong> ${address}</p>
+      <p><strong>Map Link:</strong> <a href="${googleMapLink}" target="_blank">${googleMapLink}</a></p>
+    `;
+
+    const recipients = checkedItems
+  .filter((item) => item.isChecked)
+  .map((item) => item.email);
+
+console.log("Sending mail to: ", recipients);
+
+
+    if (recipients.length === 0) throw new Error("No recipients selected");
+
+    const mailResponse = await transport.sendMail({
+      from: `"Accident Notifier" <${process.env.EMAIL}>`,
+      to: recipients,
+      subject: "🚨 Accident Alert",
+      html: htmlContent,
+    });
+
+    return mailResponse;
+  } catch (error) {
+    console.error("Failed to send mail:", error);
+    return null;
+  }
 }
