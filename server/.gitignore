@@ -1,3 +1,19 @@
-venv/
-**/__pycache__/
+# Python
+server/venv/
+__pycache__/
+
+# Node
+node_modules/
+client/node_modules/
+accidentapp-mobile/node_modules/
+
+# React build
+client/build/
+
+# Environment files
 .env
+server/.env
+accidentapp-mobile/.env
+
+# Mac junk
+.DS_Store

@@ -2,11 +2,9 @@ from ultralytics import YOLO
 import cv2
 import math
 import cvzone
-import os
 
 def detect_object_on_video(video_path):
-    video_capture = video_path
-    cap = cv2.VideoCapture(video_capture)
+    cap = cv2.VideoCapture(video_path)
     frame_width = int(cap.get(3))
     frame_height = int(cap.get(4))
 
@@ -22,11 +20,15 @@ def detect_object_on_video(video_path):
                   "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors",
                   "teddy bear", "hair drier", "toothbrush"
                   ]
+
     while True:
-        sucess, img = cap.read()
-        if not sucess:
+        success, img = cap.read()
+        if not success:
             break
-        results = model(img,stream=True)
+
+        results = model(img, stream=True)
+        vehicles = []
+
         for r in results:
             boxes = r.boxes
             for box in boxes:
@@ -37,8 +39,25 @@ def detect_object_on_video(video_path):
                 conf = math.ceil((box.conf[0] * 100)) / 100
                 cls = int(box.cls[0])
                 label = classNames[cls].upper()
-                cvzone.cornerRect(img, (x1, y1, w, h))
-                cvzone.putTextRect(img, f'{label} {conf}', (max(0, x1), max(35, y1)), colorR=(0,165,255))
+
+                # Only check for vehicle classes
+                if label in ["CAR", "TRUCK", "BUS", "MOTORBIKE"]:
+                    vehicles.append((x1, y1, x2, y2))
+                    cvzone.cornerRect(img, (x1, y1, w, h))
+                    cvzone.putTextRect(img, f'{label} {conf}', (max(0, x1), max(35, y1)), colorR=(0,165,255))
+
+        # Check for collisions (bounding box overlaps)
+        for i in range(len(vehicles)):
+            for j in range(i + 1, len(vehicles)):
+                x1, y1, x2, y2 = vehicles[i]
+                a1, b1, a2, b2 = vehicles[j]
+
+                # Intersection logic
+                if x1 < a2 and x2 > a1 and y1 < b2 and y2 > b1:
+                    # Collision detected
+                    cv2.putText(img, '🚨 ACCIDENT DETECTED!', (50, 50),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 255), 3)
+
         yield img
 
 cv2.destroyAllWindows()
