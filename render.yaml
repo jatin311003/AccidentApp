@@ -2,35 +2,23 @@ services:
   - type: web
     name: accident-detection-backend
     env: python
-    plan: free
-    region: oregon
-
     rootDir: server
-
-    buildCommand: ""
-    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT"
-
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
     envVars:
       - key: CLOUD_NAME
         value: dpfxf6qm4
-
       - key: API_KEY
-        value: 695158719872281
-
+        value: "695158719872281"
       - key: API_SECRET
         value: OysabNGbMH5oCFokW6Rr01Rfszg
-
       - key: EMAIL
         value: ajatin3110@gmail.com
-
       - key: PASSWORD
         value: idepixwxtttoasub
-
       - key: SENDTO
         value: jatin_ug22@nsut.ac.in
-
       - key: JWT_SECRET_KEY
         value: jatinjyotika3107
-
       - key: MONGO_URI
-        value: "mongodb+srv://ajatin3110_db_user:DxWkoAX6UjxaR4Kp@accidentcluster.1imkac0.mongodb.net/accidentDb?retryWrites=true&w=majority&appName=accidentCluster"
+        value: mongodb+srv://ajatin3110_db_user:DxWkoAX6UjxaR4Kp@accidentcluster.1imkac0.mongodb.net/accidentDb?retryWrites=true&w=majority&appName=accidentCluster
