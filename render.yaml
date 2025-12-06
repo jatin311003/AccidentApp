@@ -4,10 +4,10 @@ services:
     env: python
     plan: free
 
-    rootDir: server   # 👈 IMPORTANT: backend is inside /server folder
+    rootDir: server   # backend code is inside /server folder
 
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn server.app:app"
+    startCommand: "gunicorn app:app"
 
     envVars:
       - key: CLOUD_NAME
@@ -19,12 +19,15 @@ services:
       - key: API_SECRET
         value: "OysabNGbMH5oCFokW6Rr01Rfszg"
 
+      # ⬇️ EMAIL that will appear as sender name (Brevo sender domain configured)
       - key: EMAIL
         value: "ajatin3110@gmail.com"
 
-      - key: PASSWORD
-        value: "idepixwxtttoasub"
+      # ⬇️ BREVO API KEY (important!)
+      - key: BREVO_API_KEY
+        value: "TDmY7sjd1SG3kzgQ"
 
+      # ⬇️ Default SOS receiver email
       - key: SENDTO
         value: "jatin_ug22@nsut.ac.in"
 
