@@ -1,6 +1,6 @@
 import json
 from flask import Blueprint, Response, jsonify, request, current_app
-from modules.detect_object_on_video import detect_object_on_video
+# from modules.detect_object_on_video import detect_object_on_video
 from PIL import Image
 import os
 from ultralytics import YOLO
