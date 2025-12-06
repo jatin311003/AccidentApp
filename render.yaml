@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: accident-backend
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: MONGO_URI
+      - key: JWT_SECRET_KEY
+      - key: EMAIL
+      - key: PASSWORD
+      - key: CLOUD_NAME
+      - key: API_KEY
+      - key: API_SECRET
