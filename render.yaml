@@ -7,7 +7,7 @@ services:
     rootDir: server   # 👈 IMPORTANT: backend is inside /server folder
 
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn app:app"
+    startCommand: "gunicorn server.app:app"
 
     envVars:
       - key: CLOUD_NAME
